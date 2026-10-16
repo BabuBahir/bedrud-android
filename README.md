@@ -8,12 +8,12 @@ For the server, web app, and other platforms, see the [main Bedrud project](http
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-API%2028+-3DDC84?logo=android&logoColor=white)](#requirements)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 
 ---
 
-## Feature
+## Features
 
 - **Video & audio meetings** — WebRTC rooms powered by the [LiveKit Android SDK](https://github.com/livekit/client-sdk-android)
 - **Connect to multiple servers** — add several Bedrud instances and switch between them; each keeps its own login
@@ -33,8 +33,14 @@ For the server, web app, and other platforms, see the [main Bedrud project](http
 - **Meeting sounds** — a chime when someone joins or leaves and a pop when a message arrives, played
   on the call's own audio route
 - **Push to talk & voice sensitivity** — hold-to-talk input mode, a manual voice gate for voice activity, per-person volume, and device noise suppression
+- **Deafen** — silence the whole call in one tap, which mutes your microphone too and puts it back
+  as it was afterwards; everyone else in the room sees that you are deafened
 - **Admin moderation** — kick and ban controls for room hosts
-- **Flexible sign-in** — email/password, guest access, OAuth, and FIDO2 passkeys
+- **Admin panel** — a server's superadmin gets an Admin tab: counts of users, live rooms and people
+  online with the newest sign-ups, finding and banning users, deleting rooms, and turning sign-up
+  and invite-only on or off, with invite tokens to create and delete
+- **Flexible sign-in** — email/password, guest access, OAuth, and FIDO2 passkeys; creating an
+  account where the server allows sign-up, and a reset email for a forgotten password
 - **Localized** — 10 languages with right-to-left (Arabic, Persian) support
 - **Open-source licenses** — Settings › About lists the main projects the app is built on, with
   every other library it ships one tap further, each opening its full license text
@@ -165,7 +171,7 @@ is collected with `collectAsState()`.
 | Networking     | Retrofit + OkHttp (Gson)                                      |
 | Realtime media | LiveKit Android SDK                                           |
 | Calls          | Self-managed telecom `ConnectionService` (foreground service) |
-| Auth storage   | `EncryptedSharedPreferences`, per instance                    |
+| Auth storage   | `EncryptedPrefs`, sealed by an Android Keystore AES-GCM key, per instance |
 | Passkeys       | AndroidX Credential Manager + Play Services FIDO              |
 | Images         | Coil                                                          |
 
@@ -178,16 +184,19 @@ Source layout (`app/src/main/java/com/bedrud/app/`):
 ```
 core/
   api/        Retrofit services + DTOs
+  audio/      voice gate, speech detection, meeting sounds
   auth/       login, tokens, passkeys
   call/       telecom ConnectionService (meetings-as-calls)
-  chat/       in-meeting chat
+  chat/       chat images: upload, decoding, saving
   deeplink/   /m/ and /c/ link handling
   di/         Koin modules
   instance/   multi-server management
   livekit/    RoomManager — LiveKit lifecycle
-  meeting/    meeting logic (chat wire, video aspect)
+  meeting/    chat and presence wire formats, video aspect
   pip/        picture-in-picture state
+  prefs/      SharedPreferences helpers
   recent/     recent rooms
+  rooms/      room activity, rooms waiting to open, join failures
 ui/
   components/ shared Compose widgets
   screens/    auth, dashboard, instance, main, meeting, admin, profile, settings
