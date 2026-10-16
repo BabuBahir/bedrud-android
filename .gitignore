@@ -12,7 +12,6 @@ secrets.properties
 # Written by Android Studio - contains this machine's SDK path.
 local.properties
 
-.env
 
 # --- Gradle & build output ----------------------------------------------------
 .gradle/
@@ -39,7 +38,6 @@ out/
 *.iml
 *.iws
 *.ipr
-.vscode/
 *.swp
 *.swo
 
@@ -60,3 +58,5 @@ Thumbs.db
 
 # --- Logs ---------------------------------------------------------------------
 *.log
+config.bat
+node_modules
