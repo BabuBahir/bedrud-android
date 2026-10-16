@@ -947,16 +947,26 @@ class RoomManager(
         }
     }
 
+    /**
+     * Ends deafen because the microphone opened, and tells the room through the same queue as
+     * [toggleDeafen]. Without the announcement, everyone else kept seeing the deafened badge until
+     * this participant toggled deafen again or rejoined. The announcement is queued rather than
+     * awaited: [followDeafen] can itself open the microphone while holding [deafenFollowUp], and
+     * waiting for the lock from there would never end.
+     */
+    private fun endDeafenForMicrophone() {
+        _isDeafened.value = false
+        settingsStore.setDeafened(false)
+        reapplyAllVolumes()
+        micFollowsDeafen = false
+        eventScope?.launch { deafenFollowUp.withLock { followDeafen() } }
+    }
+
     suspend fun setMicrophoneEnabled(enabled: Boolean) {
         settingsStore.setMicEnabled(enabled)
         // Unmuting while deafened is a shortcut to undeafen too, mirroring the
         // convention most call apps use for the mic button.
-        if (enabled && _isDeafened.value) {
-            _isDeafened.value = false
-            settingsStore.setDeafened(false)
-            reapplyAllVolumes()
-            micFollowsDeafen = false
-        }
+        if (enabled && _isDeafened.value) endDeafenForMicrophone()
         val localParticipant = _room?.localParticipant ?: return
         if (localParticipant.isMicrophoneEnabled == enabled) {
             syncMicrophoneState()
@@ -985,12 +995,7 @@ class RoomManager(
     suspend fun setPushToTalkTransmitting(active: Boolean) {
         if (_inputMode.value != MeetingInputMode.PUSH_TO_TALK) return
         val localParticipant = _room?.localParticipant ?: return
-        if (active && _isDeafened.value) {
-            _isDeafened.value = false
-            settingsStore.setDeafened(false)
-            reapplyAllVolumes()
-            micFollowsDeafen = false
-        }
+        if (active && _isDeafened.value) endDeafenForMicrophone()
         setTrackEnabled(
             enabled = active,
             label = "microphone",
